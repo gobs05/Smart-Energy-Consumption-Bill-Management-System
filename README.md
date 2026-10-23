@@ -1,6 +1,6 @@
 # Smart Energy Consumption & Bill Management System ⚡
 
-A simple and beginner-friendly university Web Application Development mini-project built with the **MERN stack** (MongoDB Atlas, Express.js, React, Node.js).
+A simple and beginner-friendly university Web Application Development mini-project built with the **MERN stack** (MongoDB Atlas / Local Fallback, Express.js, React, Node.js).
 
 ---
 
@@ -8,7 +8,7 @@ A simple and beginner-friendly university Web Application Development mini-proje
 
 ### ✅ Day 1: Project Foundation & Layout Setup
 - Initialized clean project structure (`backend/` and `frontend/`).
-- Persistent MongoDB Atlas connection configuration with `.env`.
+- Database connection configuration with `.env`.
 - Express backend server configuration.
 - React single-page application setup with Vite and React Router.
 - Responsive layout with navigation (Dashboard, Energy Records, Add Record).
@@ -29,8 +29,24 @@ A simple and beginner-friendly university Web Application Development mini-proje
   - `due_date`: Date
   - `created_at`: Date (auto-managed timestamp)
   - `updated_at`: Date (auto-managed timestamp)
-- Verified collection creation and field validations without leaving dummy records in DB.
-- Added database verification test script (`npm run test:db`).
+- Added automatic local MongoDB fallback (`localhost:27017`) if Atlas is unreachable or IP is unwhitelisted.
+
+### ✅ Day 3: CREATE Functionality & Automatic Calculations
+- Replaced Add Record placeholder with a working, responsive form:
+  - Inputs: Month, Previous Meter Reading, Current Meter Reading, Rate Per Unit, Due Date, Payment Status (`Paid`/`Unpaid`).
+  - Automatic calculations computed on submission:
+    - `units_consumed = current_reading - previous_reading`
+    - `total_bill = units_consumed * rate_per_unit`
+  - Live calculation preview box for instant user feedback.
+- Server-side validation:
+  - All required fields present and non-empty.
+  - Previous Reading $\ge 0$, Current Reading $\ge 0$.
+  - Current Reading $\ge$ Previous Reading.
+  - Rate Per Unit $> 0$.
+  - Payment Status strictly `Paid` or `Unpaid`.
+- Database storage via `POST /api/records` route saving records to `energy_records`.
+- Clear user feedback with success messages and redirection to `/records`.
+- Full Day 3 verification test suite (`npm run test:day3`).
 
 ---
 
@@ -47,51 +63,58 @@ Smart-Energy-Consumption-Bill-Management-System/
 │   ├── package.json           # Backend dependencies & test scripts
 │   ├── server.js              # Express app entry point
 │   ├── config/
-│   │   └── db.js              # Database connection & collection setup
+│   │   └── db.js              # Database connection (Atlas + local fallback)
 │   ├── models/
 │   │   └── EnergyRecord.js    # EnergyRecord Mongoose model
+│   ├── routes/
+│   │   └── records.js         # API route for creating records (Day 3)
 │   └── scripts/
-│       └── verifyDb.js        # Day 2 database verification script
+│       ├── verifyDb.js        # Day 2 database verification script
+│       └── testDay3.js        # Day 3 validation & calculation test script
 └── frontend/
     ├── index.html             # HTML entry point
     ├── package.json           # Frontend dependencies
-    ├── vite.config.js         # Vite configuration with proxy
+    ├── vite.config.js         # Vite configuration with proxy to port 5001
     └── src/
         ├── App.jsx            # Application layout & routes
         ├── main.jsx           # React DOM root
-        ├── index.css          # Clean responsive stylesheet
+        ├── index.css          # Clean responsive stylesheet (cards, forms, alerts)
         ├── components/
         │   ├── Navbar.jsx     # Navigation bar
         │   └── Footer.jsx     # Footer
         └── pages/
             ├── Dashboard.jsx      # Overview cards
             ├── EnergyRecords.jsx  # Records placeholder
-            └── AddRecord.jsx      # Add record placeholder
+            └── AddRecord.jsx      # Day 3 working Add Record form
 ```
 
 ---
 
 ## 🛠️ Verification Commands
 
-To verify the Day 2 database model and collection:
+To run the Day 3 test suite (tests calculations, validation, and database storage):
+```bash
+npm run test:day3
+```
+
+To test the database connection and collection:
 ```bash
 npm run test:db
 ```
-*(Runs [`backend/scripts/verifyDb.js`](backend/scripts/verifyDb.js))*
 
 ---
 
 ## 🚀 Running the Project
 
-**1. Start Backend:**
+**1. Start Backend Server:**
 ```bash
 npm run server
 ```
-*Runs at: http://localhost:5001*
+*Backend runs at: http://localhost:5001*
 
-**2. Start Frontend:**
+**2. Start Frontend Application:**
 ```bash
 npm run client
 ```
-*Runs at: http://localhost:5173*
+*Frontend runs at: http://localhost:5173*
 # Smart-Energy-Consumption-Bill-Management-System
