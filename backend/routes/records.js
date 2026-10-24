@@ -1,8 +1,90 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const EnergyRecord = require('../models/EnergyRecord');
 
-// POST /api/records - Create a new energy record
+// GET /api/records - Retrieve all energy records with optional search, filter & sort
+router.get('/', async (req, res) => {
+  try {
+    const { search, status, sortBy, order } = req.query;
+    const filter = {};
+
+    // 1. Search by Month
+    if (search && search.trim() !== '') {
+      filter.month = { $regex: search.trim(), $options: 'i' };
+    }
+
+    // 2. Filter by Payment Status (Paid / Unpaid)
+    if (status && status !== 'All') {
+      filter.payment_status = status;
+    }
+
+    // 3. Sort configuration
+    const sort = {};
+    const sortDirection = order === 'asc' ? 1 : -1;
+
+    if (sortBy === 'month') {
+      sort.month = sortDirection;
+    } else if (sortBy === 'total_bill') {
+      sort.total_bill = sortDirection;
+    } else if (sortBy === 'due_date') {
+      sort.due_date = sortDirection;
+    } else {
+      sort.due_date = -1; // Default to latest due date
+    }
+
+    const records = await EnergyRecord.find(filter).sort(sort);
+
+    return res.json({
+      success: true,
+      count: records.length,
+      data: records,
+    });
+  } catch (error) {
+    console.error('Error fetching records:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching energy records.',
+    });
+  }
+});
+
+// GET /api/records/:id - Retrieve a single energy record by database ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Gracefully handle invalid MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invalid record ID format. Record not found.',
+      });
+    }
+
+    const record = await EnergyRecord.findById(id);
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        message: 'Energy record not found.',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: record,
+    });
+  } catch (error) {
+    console.error('Error fetching record by ID:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching the energy record.',
+    });
+  }
+});
+
+// POST /api/records - Create a new energy record (Day 3)
 router.post('/', async (req, res) => {
   try {
     const {

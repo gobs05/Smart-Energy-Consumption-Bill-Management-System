@@ -32,21 +32,31 @@ A simple and beginner-friendly university Web Application Development mini-proje
 - Added automatic local MongoDB fallback (`localhost:27017`) if Atlas is unreachable or IP is unwhitelisted.
 
 ### ✅ Day 3: CREATE Functionality & Automatic Calculations
-- Replaced Add Record placeholder with a working, responsive form:
-  - Inputs: Month, Previous Meter Reading, Current Meter Reading, Rate Per Unit, Due Date, Payment Status (`Paid`/`Unpaid`).
-  - Automatic calculations computed on submission:
-    - `units_consumed = current_reading - previous_reading`
-    - `total_bill = units_consumed * rate_per_unit`
-  - Live calculation preview box for instant user feedback.
-- Server-side validation:
-  - All required fields present and non-empty.
-  - Previous Reading $\ge 0$, Current Reading $\ge 0$.
-  - Current Reading $\ge$ Previous Reading.
-  - Rate Per Unit $> 0$.
-  - Payment Status strictly `Paid` or `Unpaid`.
-- Database storage via `POST /api/records` route saving records to `energy_records`.
-- Clear user feedback with success messages and redirection to `/records`.
-- Full Day 3 verification test suite (`npm run test:day3`).
+- Working Add Record form with automatic calculation:
+  - `units_consumed = current_reading - previous_reading`
+  - `total_bill = units_consumed * rate_per_unit`
+- Server-side validations (non-empty fields, non-negative numbers, current reading $\ge$ previous reading, rate $>0$, valid payment status).
+- Record storage via `POST /api/records` route.
+
+### ✅ Day 4: READ Functionality, Search, Filter & Sort
+- **List Records Table:**
+  - Displays all records with columns: Month, Previous Reading, Current Reading, Units Consumed (`150 kWh`), Rate Per Unit (`Rs. 25.00`), Total Bill (`Rs. 3,750.00`), Payment Status (Paid/Unpaid visual badge), Due Date, and Actions (`View`).
+- **View Record Page:**
+  - Dedicated details view (`/records/:id`) showing all meter and bill parameters with a "Back to Records" navigation link.
+  - Graceful 404 handling for non-existing or invalid record IDs.
+- **Search:**
+  - Fast case-insensitive search by month (e.g. `October 2026`).
+- **Filter:**
+  - Payment status filter: `All`, `Paid`, `Unpaid`.
+- **Sort:**
+  - Sort by: `Due Date`, `Month`, `Total Bill`.
+  - Direction: `Descending` (high to low / newest) or `Ascending` (low to high / oldest).
+- **Combined Search / Filter / Sort:**
+  - Search, filter, and sorting interact simultaneously.
+- **Empty State:**
+  - Clean message *"No energy records available."* with direct "Add Record" link.
+- **Automated Day 4 Test Suite:**
+  - Run via `npm run test:day4`.
 
 ---
 
@@ -67,30 +77,37 @@ Smart-Energy-Consumption-Bill-Management-System/
 │   ├── models/
 │   │   └── EnergyRecord.js    # EnergyRecord Mongoose model
 │   ├── routes/
-│   │   └── records.js         # API route for creating records (Day 3)
+│   │   └── records.js         # API routes (POST create, GET all with filters, GET by ID)
 │   └── scripts/
 │       ├── verifyDb.js        # Day 2 database verification script
-│       └── testDay3.js        # Day 3 validation & calculation test script
+│       ├── testDay3.js        # Day 3 validation & calculation test script
+│       └── testDay4.js        # Day 4 listing, view, search, filter, sort test script
 └── frontend/
     ├── index.html             # HTML entry point
     ├── package.json           # Frontend dependencies
     ├── vite.config.js         # Vite configuration with proxy to port 5001
     └── src/
-        ├── App.jsx            # Application layout & routes
+        ├── App.jsx            # Application layout & routes (including /records/:id)
         ├── main.jsx           # React DOM root
-        ├── index.css          # Clean responsive stylesheet (cards, forms, alerts)
+        ├── index.css          # Clean responsive stylesheet (tables, badges, filters)
         ├── components/
         │   ├── Navbar.jsx     # Navigation bar
         │   └── Footer.jsx     # Footer
         └── pages/
             ├── Dashboard.jsx      # Overview cards
-            ├── EnergyRecords.jsx  # Records placeholder
-            └── AddRecord.jsx      # Day 3 working Add Record form
+            ├── EnergyRecords.jsx  # Day 4 interactive records table with search/filter/sort
+            ├── ViewRecord.jsx     # Day 4 single record details view
+            └── AddRecord.jsx      # Day 3 Add Record form
 ```
 
 ---
 
 ## 🛠️ Verification Commands
+
+To run the Day 4 test suite (tests listing, single view, search, filter, sort):
+```bash
+npm run test:day4
+```
 
 To run the Day 3 test suite (tests calculations, validation, and database storage):
 ```bash

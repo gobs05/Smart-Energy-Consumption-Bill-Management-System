@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import EnergyRecords from './pages/EnergyRecords';
 import AddRecord from './pages/AddRecord';
+import ViewRecord from './pages/ViewRecord';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/records" element={<EnergyRecords />} />
+          <Route path="/records/:id" element={<ViewRecord />} />
           <Route path="/add-record" element={<AddRecord />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
