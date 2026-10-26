@@ -213,7 +213,7 @@ a {
   color: var(--text-muted);
 }
 
-/* Day 3: Form Card & Controls */
+/* Form Card & Controls (Day 3 & Day 5) */
 .form-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -262,6 +262,23 @@ a {
   gap: 1.25rem;
 }
 
+.form-actions-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+.form-actions-row .btn-submit {
+  flex: 2;
+}
+
+.form-actions-row .btn-secondary {
+  flex: 1;
+  padding: 0.85rem 1.25rem;
+  text-align: center;
+}
+
 /* Calculation Preview Box */
 .calculation-preview {
   background-color: var(--primary-light);
@@ -304,7 +321,7 @@ a {
   color: var(--primary-color);
 }
 
-/* Buttons */
+/* Action & Standard Buttons */
 .btn-submit {
   width: 100%;
   padding: 0.85rem 1.5rem;
@@ -334,7 +351,9 @@ a {
   font-weight: 600;
   color: #ffffff;
   background-color: var(--primary-color);
+  border: none;
   border-radius: 6px;
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
@@ -360,20 +379,26 @@ a {
   border-color: #cbd5e1;
 }
 
-.btn-view {
+.btn-danger {
   display: inline-block;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--primary-color);
-  background-color: var(--primary-light);
-  border-radius: 5px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #ffffff;
+  background-color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.btn-view:hover {
-  background-color: var(--primary-color);
-  color: #ffffff;
+.btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.btn-danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .btn-link {
@@ -389,6 +414,56 @@ a {
 
 .btn-link:hover {
   color: var(--primary-hover);
+}
+
+/* Day 5: Table Action Buttons (View, Edit, Delete) */
+.action-buttons-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.btn-action {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 5px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.btn-view {
+  color: var(--primary-color);
+  background-color: var(--primary-light);
+}
+
+.btn-view:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.btn-edit {
+  color: #0369a1;
+  background-color: #e0f2fe;
+}
+
+.btn-edit:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+.btn-delete {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+  color: #ffffff;
 }
 
 /* Day 4: Toolbar Controls (Search, Filter, Sort) */
@@ -480,7 +555,7 @@ a {
 }
 
 .records-table td {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-main);
   white-space: nowrap;
@@ -544,7 +619,7 @@ a {
   border: 1px solid #fecaca;
 }
 
-/* Day 4: View Record Details Card */
+/* Details Card (View Record) */
 .details-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -630,9 +705,85 @@ a {
 
 .details-actions {
   display: flex;
-  justify-content: flex-start;
-  padding-top: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.25rem;
   border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Day 5: Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-card h3 {
+  font-size: 1.25rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.modal-card p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.modal-warning {
+  color: #b91c1c !important;
+  font-size: 0.85rem !important;
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  min-width: 100px;
 }
 
 /* Alerts */
@@ -676,6 +827,11 @@ a {
   .details-grid {
     grid-template-columns: 1fr;
   }
+
+  .details-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (max-width: 640px) {
@@ -712,6 +868,15 @@ a {
 
   .form-card {
     padding: 1.25rem;
+  }
+
+  .form-actions-row {
+    flex-direction: column;
+  }
+
+  .form-actions-row .btn-submit,
+  .form-actions-row .btn-secondary {
+    width: 100%;
   }
 
   .calc-details {

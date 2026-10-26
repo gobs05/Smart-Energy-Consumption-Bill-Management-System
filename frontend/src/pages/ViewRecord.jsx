@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
 function ViewRecord() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -29,6 +35,28 @@ function ViewRecord() {
 
     fetchRecord();
   }, [id]);
+
+  const confirmDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/records/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete record.');
+      }
+
+      // Redirect to Energy Records
+      navigate('/records');
+    } catch (err) {
+      alert(err.message || 'Failed to delete record.');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   // Helper formatters
   const formatCurrency = (amount) => {
@@ -57,9 +85,16 @@ function ViewRecord() {
           <h1>Energy Record Details</h1>
           <p>Detailed breakdown for {record ? record.month : 'selected record'}</p>
         </div>
-        <Link to="/records" className="btn-secondary">
-          ← Back to Records
-        </Link>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {record && (
+            <Link to={`/records/edit/${id}`} className="btn-secondary">
+              ✏️ Edit Record
+            </Link>
+          )}
+          <Link to="/records" className="btn-secondary">
+            ← Back to Records
+          </Link>
+        </div>
       </div>
 
       {loading && (
@@ -144,6 +179,51 @@ function ViewRecord() {
             <Link to="/records" className="btn-secondary">
               ← Back to Records
             </Link>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <Link to={`/records/edit/${id}`} className="btn-primary-inline">
+                Edit Record
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="btn-danger"
+              >
+                Delete Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && record && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-icon">⚠️</div>
+            <h3>Confirm Deletion</h3>
+            <p>
+              Are you sure you want to delete the energy record for{' '}
+              <strong>{record.month}</strong>?
+            </p>
+            <p className="modal-warning">This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={confirmDelete}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -152,3 +232,4 @@ function ViewRecord() {
 }
 
 export default ViewRecord;
+

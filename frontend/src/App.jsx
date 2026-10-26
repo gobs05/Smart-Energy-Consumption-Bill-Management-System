@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import EnergyRecords from './pages/EnergyRecords';
 import AddRecord from './pages/AddRecord';
 import ViewRecord from './pages/ViewRecord';
+import EditRecord from './pages/EditRecord';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/records" element={<EnergyRecords />} />
           <Route path="/records/:id" element={<ViewRecord />} />
+          <Route path="/records/edit/:id" element={<EditRecord />} />
           <Route path="/add-record" element={<AddRecord />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

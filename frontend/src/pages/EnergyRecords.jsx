@@ -5,6 +5,11 @@ function EnergyRecords() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
+
+  // Delete modal state
+  const [recordToDelete, setRecordToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Search, Filter & Sort State
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,6 +55,38 @@ function EnergyRecords() {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
     return date.toISOString().split('T')[0];
+  };
+
+  // Delete confirmation handler
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+    setDeleteLoading(true);
+
+    try {
+      const id = recordToDelete._id || recordToDelete.id;
+      const response = await fetch(`/api/records/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete record.');
+      }
+
+      // Remove from local state
+      setRecords((prev) => prev.filter((r) => (r._id || r.id) !== id));
+      setDeleteSuccessMessage('Energy record deleted successfully.');
+      setRecordToDelete(null);
+
+      // Auto-clear success message after 3.5 seconds
+      setTimeout(() => {
+        setDeleteSuccessMessage('');
+      }, 3500);
+    } catch (err) {
+      alert(err.message || 'Error deleting record.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // Combine Search, Filter, and Sort on records
@@ -102,6 +139,13 @@ function EnergyRecords() {
           + Add Record
         </Link>
       </div>
+
+      {/* Success Banner after Deletion */}
+      {deleteSuccessMessage && (
+        <div className="alert alert-success" role="alert">
+          ✅ {deleteSuccessMessage}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
@@ -263,12 +307,30 @@ function EnergyRecords() {
                       </td>
                       <td>{formatDate(record.due_date)}</td>
                       <td>
-                        <Link
-                          to={`/records/${record._id || record.id}`}
-                          className="btn-view"
-                        >
-                          View
-                        </Link>
+                        <div className="action-buttons-cell">
+                          <Link
+                            to={`/records/${record._id || record.id}`}
+                            className="btn-action btn-view"
+                            title="View Record"
+                          >
+                            View
+                          </Link>
+                          <Link
+                            to={`/records/edit/${record._id || record.id}`}
+                            className="btn-action btn-edit"
+                            title="Edit Record"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setRecordToDelete(record)}
+                            className="btn-action btn-delete"
+                            title="Delete Record"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -276,6 +338,39 @@ function EnergyRecords() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {recordToDelete && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <div className="modal-icon">⚠️</div>
+            <h3>Confirm Deletion</h3>
+            <p>
+              Are you sure you want to delete the energy record for{' '}
+              <strong>{recordToDelete.month}</strong>?
+            </p>
+            <p className="modal-warning">This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setRecordToDelete(null)}
+                disabled={deleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={confirmDelete}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
