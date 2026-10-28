@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const EnergyRecord = require('../models/EnergyRecord');
 
-// Shared validation function for Create (Day 3) and Update (Day 5)
+// Shared validation function for Create and Update
 function validateRecordInput(body) {
   const {
     month,
@@ -25,7 +25,7 @@ function validateRecordInput(body) {
     return { valid: false, message: 'Current reading is required.' };
   }
   if (rate_per_unit === undefined || rate_per_unit === null || rate_per_unit === '') {
-    return { valid: false, message: 'Rate per unit is required.' };
+    return { valid: false, message: 'Please enter a valid rate per unit.' };
   }
   if (!due_date || due_date === '') {
     return { valid: false, message: 'Due date is required.' };
@@ -57,12 +57,12 @@ function validateRecordInput(body) {
   if (curr < prev) {
     return {
       valid: false,
-      message: 'Current reading must be greater than or equal to previous reading.',
+      message: 'Current reading cannot be lower than previous reading.',
     };
   }
 
   if (rate <= 0) {
-    return { valid: false, message: 'Rate per unit must be greater than 0.' };
+    return { valid: false, message: 'Please enter a valid rate per unit.' };
   }
 
   if (payment_status !== 'Paid' && payment_status !== 'Unpaid') {
@@ -88,13 +88,13 @@ function validateRecordInput(body) {
   };
 }
 
-// GET /api/records - Retrieve all energy records with optional search, filter & sort (Day 4)
+// GET /api/records - Retrieve all energy records with optional search, filter & sort
 router.get('/', async (req, res) => {
   try {
     const { search, status, sortBy, order } = req.query;
     const filter = {};
 
-    // 1. Search by Month
+    // 1. Search by Month (case-insensitive)
     if (search && search.trim() !== '') {
       filter.month = { $regex: search.trim(), $options: 'i' };
     }
@@ -134,7 +134,36 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/records/:id - Retrieve a single energy record by database ID (Day 4)
+// GET /api/records/summary - Summary statistics and recent records for Dashboard (Step 11)
+router.get('/summary', async (req, res) => {
+  try {
+    const records = await EnergyRecord.find({}).sort({ due_date: -1 });
+
+    const totalUsage = records.reduce((sum, r) => sum + (r.units_consumed || 0), 0);
+    const latestBill = records.length > 0 ? records[0].total_bill : 0;
+    const unpaidBills = records.filter((r) => r.payment_status === 'Unpaid').length;
+    const recentRecords = records.slice(0, 5);
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsage,
+        latestBill,
+        unpaidBills,
+        totalRecords: records.length,
+        recentRecords,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard summary:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching dashboard summary.',
+    });
+  }
+});
+
+// GET /api/records/:id - Retrieve a single energy record by database ID
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -143,7 +172,7 @@ router.get('/:id', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({
         success: false,
-        message: 'Invalid record ID format. Record not found.',
+        message: 'Energy record not found.',
       });
     }
 
@@ -169,7 +198,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/records - Create a new energy record (Day 3)
+// POST /api/records - Create a new energy record
 router.post('/', async (req, res) => {
   try {
     const validation = validateRecordInput(req.body);
@@ -186,7 +215,7 @@ router.post('/', async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Energy record saved successfully!',
+      message: 'Energy record added successfully.',
       data: savedRecord,
     });
   } catch (error) {
@@ -198,7 +227,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/records/:id - Update an existing energy record (Day 5)
+// PUT /api/records/:id - Update an existing energy record
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -207,7 +236,7 @@ router.put('/:id', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({
         success: false,
-        message: 'Invalid record ID format. Record not found.',
+        message: 'Energy record not found.',
       });
     }
 
@@ -243,7 +272,7 @@ router.put('/:id', async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Energy record updated successfully!',
+      message: 'Energy record updated successfully.',
       data: updatedRecord,
     });
   } catch (error) {
@@ -255,7 +284,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/records/:id - Delete an existing energy record (Day 5)
+// DELETE /api/records/:id - Delete an existing energy record
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -264,7 +293,7 @@ router.delete('/:id', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({
         success: false,
-        message: 'Invalid record ID format. Record not found.',
+        message: 'Energy record not found.',
       });
     }
 
@@ -292,4 +321,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-

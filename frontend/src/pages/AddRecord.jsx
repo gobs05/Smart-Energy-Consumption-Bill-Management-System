@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function AddRecord() {
   const navigate = useNavigate();
@@ -36,7 +36,6 @@ function AddRecord() {
       ...prev,
       [name]: value,
     }));
-    // Clear alerts on change
     if (errorMessage) setErrorMessage('');
   };
 
@@ -45,16 +44,29 @@ function AddRecord() {
     setErrorMessage('');
     setSuccessMessage('');
 
-    // Basic frontend check for current >= previous
-    if (currNum < prevNum) {
-      setErrorMessage(
-        'Current Meter Reading must be greater than or equal to Previous Meter Reading.'
-      );
+    // Client-side validation checks
+    if (!formData.month.trim()) {
+      setErrorMessage('Month is required.');
       return;
     }
-
-    if (rateNum <= 0) {
-      setErrorMessage('Rate Per Unit must be greater than 0.');
+    if (isNaN(prevNum) || prevNum < 0) {
+      setErrorMessage('Previous reading cannot be negative.');
+      return;
+    }
+    if (isNaN(currNum) || currNum < 0) {
+      setErrorMessage('Current reading cannot be negative.');
+      return;
+    }
+    if (currNum < prevNum) {
+      setErrorMessage('Current reading cannot be lower than previous reading.');
+      return;
+    }
+    if (isNaN(rateNum) || rateNum <= 0) {
+      setErrorMessage('Please enter a valid rate per unit.');
+      return;
+    }
+    if (!formData.due_date) {
+      setErrorMessage('Due date is required.');
       return;
     }
 
@@ -67,7 +79,7 @@ function AddRecord() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          month: formData.month,
+          month: formData.month.trim(),
           previous_reading: prevNum,
           current_reading: currNum,
           rate_per_unit: rateNum,
@@ -82,14 +94,12 @@ function AddRecord() {
         throw new Error(data.message || 'Failed to save record.');
       }
 
-      setSuccessMessage(
-        '✅ Energy record saved successfully! Redirecting to Energy Records...'
-      );
+      setSuccessMessage('Energy record added successfully.');
 
-      // Redirect user to records page after 1.5 seconds
+      // Redirect user to records page after 1.2 seconds
       setTimeout(() => {
         navigate('/records');
-      }, 1500);
+      }, 1200);
     } catch (err) {
       setErrorMessage(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -99,9 +109,14 @@ function AddRecord() {
 
   return (
     <div className="add-record-page">
-      <div className="page-header">
-        <h1>Add Record</h1>
-        <p>Enter electricity meter readings and bill details below</p>
+      <div className="page-header flex-header">
+        <div>
+          <h1>Add Record</h1>
+          <p>Enter electricity meter readings and bill details below</p>
+        </div>
+        <Link to="/records" className="btn-secondary">
+          ← Cancel & Back
+        </Link>
       </div>
 
       <div className="form-card">
@@ -113,7 +128,7 @@ function AddRecord() {
 
         {successMessage && (
           <div className="alert alert-success" role="alert">
-            {successMessage}
+            ✅ {successMessage}
           </div>
         )}
 
@@ -221,19 +236,29 @@ function AddRecord() {
               <div className="calc-item">
                 <span className="calc-label">Total Bill:</span>
                 <span className="calc-value highlight">
-                  {totalBill !== null ? `₹${totalBill.toFixed(2)}` : '—'}
+                  {totalBill !== null
+                    ? `Rs. ${totalBill.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : '—'}
                 </span>
               </div>
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="btn-submit"
-            disabled={loading}
-          >
-            {loading ? 'Saving Record...' : 'Add Record'}
-          </button>
+          <div className="form-actions-row">
+            <button
+              type="submit"
+              className="btn-submit"
+              disabled={loading}
+            >
+              {loading ? 'Saving Record...' : 'Add Record'}
+            </button>
+            <Link to="/records" className="btn-secondary" style={{ textAlign: 'center' }}>
+              Cancel
+            </Link>
+          </div>
         </form>
       </div>
     </div>
@@ -241,4 +266,3 @@ function AddRecord() {
 }
 
 export default AddRecord;
-

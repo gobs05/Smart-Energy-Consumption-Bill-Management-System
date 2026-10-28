@@ -29,11 +29,10 @@ function EditRecord() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Record not found.');
+          throw new Error(data.message || 'Energy record not found.');
         }
 
         const rec = data.data;
-        // Format due_date to YYYY-MM-DD for HTML date input
         const formattedDate = rec.due_date
           ? new Date(rec.due_date).toISOString().split('T')[0]
           : '';
@@ -47,7 +46,7 @@ function EditRecord() {
           payment_status: rec.payment_status || 'Unpaid',
         });
       } catch (err) {
-        setErrorMessage(err.message || 'Failed to load record for editing.');
+        setErrorMessage(err.message || 'Energy record not found.');
       } finally {
         setLoading(false);
       }
@@ -83,16 +82,29 @@ function EditRecord() {
     setErrorMessage('');
     setSuccessMessage('');
 
-    // Client-side validation check
-    if (currNum < prevNum) {
-      setErrorMessage(
-        'Current Meter Reading must be greater than or equal to Previous Meter Reading.'
-      );
+    // Client-side validation checks
+    if (!formData.month.trim()) {
+      setErrorMessage('Month is required.');
       return;
     }
-
-    if (rateNum <= 0) {
-      setErrorMessage('Rate Per Unit must be greater than 0.');
+    if (isNaN(prevNum) || prevNum < 0) {
+      setErrorMessage('Previous reading cannot be negative.');
+      return;
+    }
+    if (isNaN(currNum) || currNum < 0) {
+      setErrorMessage('Current reading cannot be negative.');
+      return;
+    }
+    if (currNum < prevNum) {
+      setErrorMessage('Current reading cannot be lower than previous reading.');
+      return;
+    }
+    if (isNaN(rateNum) || rateNum <= 0) {
+      setErrorMessage('Please enter a valid rate per unit.');
+      return;
+    }
+    if (!formData.due_date) {
+      setErrorMessage('Due date is required.');
       return;
     }
 
@@ -105,7 +117,7 @@ function EditRecord() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          month: formData.month,
+          month: formData.month.trim(),
           previous_reading: prevNum,
           current_reading: currNum,
           rate_per_unit: rateNum,
@@ -120,7 +132,7 @@ function EditRecord() {
         throw new Error(data.message || 'Failed to update record.');
       }
 
-      setSuccessMessage('✅ Energy record updated successfully! Redirecting...');
+      setSuccessMessage('Energy record updated successfully.');
 
       // Redirect back to Energy Records list after 1.2s
       setTimeout(() => {
@@ -165,7 +177,7 @@ function EditRecord() {
 
         {successMessage && (
           <div className="alert alert-success" role="alert">
-            {successMessage}
+            ✅ {successMessage}
           </div>
         )}
 

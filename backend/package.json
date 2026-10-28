@@ -9,7 +9,8 @@
     "test:db": "node scripts/verifyDb.js",
     "test:day3": "node scripts/testDay3.js",
     "test:day4": "node scripts/testDay4.js",
-    "test:day5": "node scripts/testDay5.js"
+    "test:day5": "node scripts/testDay5.js",
+    "test:full": "node scripts/testFullApplication.js"
   },
   "keywords": [
     "mern",
